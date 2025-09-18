@@ -1,0 +1,21 @@
+/* File: App.css */
+
+.app-layout {
+  display: flex;
+  height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh; 
+  overflow: hidden;
+}
+
+.page-container {
+  flex: 1; /* Mengisi sisa ruang vertikal di bawah header */
+  padding: 20px;
+  background-color: #f9fafb;
+  overflow-y: auto; /* Aktifkan scrollbar hanya di area konten ini */
+}
