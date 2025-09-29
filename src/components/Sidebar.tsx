@@ -1,17 +1,36 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { logout } from "../api/authService";
-import { Calendar, UserPlus, LogOut } from "lucide-react"; // ✅ Icon elegan
+import { Calendar, UserPlus, LogOut } from "lucide-react";
 import "./Sidebar.css";
 
 const MySwal = withReactContent(Swal);
 
 const Sidebar: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [activeMenu, setActiveMenu] = useState<string>("appointment");
 
-  const goToAppointment = () => navigate("/");
-  const goToNewPx = () => navigate("/newpx");
+  // Update active menu berdasarkan path saat ini
+  useEffect(() => {
+    if (location.pathname === "/" || location.pathname === "/appointment") {
+      setActiveMenu("appointment");
+    } else if (location.pathname === "/newpx") {
+      setActiveMenu("newpx");
+    }
+  }, [location.pathname]);
+
+  const goToAppointment = () => {
+    setActiveMenu("appointment");
+    navigate("/");
+  };
+
+  const goToNewPx = () => {
+    setActiveMenu("newpx");
+    navigate("/newpx");
+  };
 
   const handleLogout = () => {
     MySwal.fire({
@@ -34,15 +53,29 @@ const Sidebar: React.FC = () => {
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <h2 className="sidebar-title">APM APP</h2>
+        <img
+          src="/assets/logo-klinik.png"
+          alt="Logo Klinik"
+          className="sidebar-logo"
+        />
+        <div className="sidebar-clinic-info">
+          <h2 className="sidebar-clinic-title">KLINIK MUHAMMADIYAH LAMONGAN</h2>
+          <p className="sidebar-clinic-address">Jl. KH. Ahmad Dahlan No 26, Sidorukun, Sidoharjo Lamongan</p>
+        </div>
       </div>
 
       <nav className="sidebar-menu">
-        <button className="sidebar-btn active" onClick={goToAppointment}>
+        <button 
+          className={`sidebar-btn ${activeMenu === "appointment" ? "active" : ""}`} 
+          onClick={goToAppointment}
+        >
           <Calendar size={20} className="sidebar-icon" />
           <span>Appointment</span>
         </button>
-        <button className="sidebar-btn" onClick={goToNewPx}>
+        <button 
+          className={`sidebar-btn ${activeMenu === "newpx" ? "active" : ""}`} 
+          onClick={goToNewPx}
+        >
           <UserPlus size={20} className="sidebar-icon" />
           <span>Pasien Baru</span>
         </button>

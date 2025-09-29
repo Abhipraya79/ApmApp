@@ -182,10 +182,9 @@
 
 .pilih-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 6px 20px rgba(101, 218, 179, 0.3);
 }
 
-/* ================== Form ================== */
 .form-section-header {
   display: flex;
   justify-content: space-between;

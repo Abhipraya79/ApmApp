@@ -1,9 +1,8 @@
-// src/api/autoRmService.ts
 import apiClient from "./apiClient";
 
-// Sesuaikan interface agar cocok dengan respons 'response' dan 'metadata'
+
 export interface AutoRm {
-  response: string; // Properti 'response' berisi string nomor rekam medis
+  response: string;
   metadata: {
     code: number;
     message: string;

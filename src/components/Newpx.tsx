@@ -2,34 +2,11 @@ import React, { useState } from "react";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import "./NewPx.css";
-import { cariPasienByNama } from "../api/servicePx"; // 🔥 ganti sesuai path service API kamu
+import { cariPasienByNama } from "../api/servicePx";
 import { getAutoRm } from "../api/autoRmService";
+import { newPx } from "../api/NewPxService";
 
 const MySwal = withReactContent(Swal);
-
-const alergiOptions = [
-  "Amoxicillin",
-  "Ampicillin",
-  "Methampyron",
-  "Dexamethason",
-  "Cefotaxime",
-  "Ceftriaxone",
-  "Cefixime",
-  "Paracetamol",
-  "Dextromethorpane",
-  "Ciprofloxacin",
-  "Ketokonazole",
-  "Metronidazole",
-  "Ibuprofen",
-  "Sodium Metamizole",
-  "Vitamin C",
-  "Vitamin A",
-];
-
-interface AlergiItem {
-  alergi: string;
-  note: string;
-}
 
 interface Patient {
   id: string;
@@ -42,9 +19,7 @@ interface Patient {
 
 const NewPx: React.FC = () => {
   const [activeTab, setActiveTab] = useState("personal");
-  const [alergiObatList, setAlergiObatList] = useState<AlergiItem[]>([
-    { alergi: "", note: "" },
-  ]);
+
   const [patientName, setPatientName] = useState("");
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -54,13 +29,24 @@ const NewPx: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [formData, setFormData] = useState({
+    namaPx: "",
+    addrPx: "",
+    kelurahanPx: "",
+    teleponPx: "",
+    tlahirPx: "",
+    jkPx: "",
+    noKtp: "",
+    domisiliPx: "",
+    noJkn: "",
+  });
 
   const handleAutoRmClick = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const rmString = await getAutoRm(); 
+      const rmString = await getAutoRm();
       setAutoRm(rmString);
       setError(null);
     } catch (err: any) {
@@ -130,8 +116,8 @@ const NewPx: React.FC = () => {
             </thead>
             <tbody>
               ${limitedPatients
-                .map(
-                  (p) => `
+          .map(
+            (p) => `
                 <tr>
                   <td><span class="rm-badge">${p.id}</span></td>
                   <td><strong>${p.nama}</strong></td>
@@ -145,8 +131,8 @@ const NewPx: React.FC = () => {
                   </td>
                 </tr>
               `
-                )
-                .join("")}
+          )
+          .join("")}
             </tbody>
           </table>
         </div>
@@ -199,7 +185,7 @@ const NewPx: React.FC = () => {
     } catch (error) {
       console.error(error);
       MySwal.fire({
-        title: "❌ Error",
+        title: "Error",
         text: "Terjadi kesalahan saat mencari pasien. Silakan coba lagi.",
         icon: "error",
         confirmButtonColor: "#004080",
@@ -209,7 +195,6 @@ const NewPx: React.FC = () => {
     }
   };
 
-  // ================== EDIT FORM HANDLERS ==================
   const handleEditFormChange = (field: keyof Patient, value: string) => {
     if (editFormData) {
       setEditFormData({
@@ -222,7 +207,6 @@ const NewPx: React.FC = () => {
   const handleSaveEditData = async () => {
     if (!editFormData) return;
 
-    // Validasi basic
     if (!editFormData.nama.trim() || !editFormData.px.trim()) {
       MySwal.fire({
         title: "⚠️ Data Tidak Lengkap",
@@ -235,22 +219,17 @@ const NewPx: React.FC = () => {
 
     try {
       MySwal.fire({
-        title: "💾 Menyimpan Data...",
+        title: "Menyimpan Data...",
         text: "Sedang menyimpan perubahan data pasien.",
         allowOutsideClick: false,
         didOpen: () => MySwal.showLoading(),
       });
 
-      // TODO: Panggil API untuk update data pasien
-      // await updatePatientData(editFormData);
-      
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
 
       setSelectedPatient({ ...editFormData });
-
       MySwal.fire({
-        title: "✅ Berhasil",
+        title: "Berhasil",
         html: `
           <div class="success-message">
             <div class="patient-info">
@@ -314,22 +293,80 @@ const NewPx: React.FC = () => {
     });
   };
 
-  const handleAddRow = () => {
-    setAlergiObatList([...alergiObatList, { alergi: "", note: "" }]);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [id]: value,
+    }));
   };
 
-  const handleChange = (index: number, field: string, value: string) => {
-    const updated = [...alergiObatList];
-    updated[index] = { ...updated[index], [field]: value };
-    setAlergiObatList(updated);
-  };
+const handleSubmitNewPx = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!formData.namaPx.trim() || !formData.addrPx.trim()) {
+    MySwal.fire({ 
+      title: "Data tidak lengkap", 
+      text: "Nama dan alamat harus diisi.", 
+      icon: "warning" 
+    });
+    return;
+  }
 
-  const handleRemoveRow = (index: number) => {
-    if (alergiObatList.length > 1) {
-      const updated = alergiObatList.filter((_, i) => i !== index);
-      setAlergiObatList(updated);
-    }
-  };
+const payload = {
+  regNum: autoRm && autoRm.trim() !== "" ? autoRm.trim() : null,
+  nama: formData.namaPx?.trim() || null,
+  addr: formData.addrPx?.trim() || null,
+  kelurahan: formData.kelurahanPx?.trim() || null,
+  telepon: formData.teleponPx?.trim() || null,
+  tanggalLahir: formData.tlahirPx && formData.tlahirPx !== "" ? formData.tlahirPx : null,
+  jenisKelamin: formData.jkPx && formData.jkPx !== "" ? formData.jkPx : null,
+  noKtp: formData.noKtp?.trim() || null,
+  domisili: formData.domisiliPx?.trim() || null,
+  nokaBpjs: formData.noJkn?.trim() || null
+} as any;
+
+
+  try {
+    MySwal.fire({ 
+      title: "Menyimpan...", 
+      allowOutsideClick: false, 
+      didOpen: () => MySwal.showLoading() 
+    });
+    
+    const res = await newPx(payload);
+    const savedId = res?.response?.id || res?.id || payload.id;
+    
+    MySwal.fire({ 
+      title: "Berhasil", 
+      text: `Pasien tersimpan (RM: ${savedId})`, 
+      icon: "success" 
+    });
+
+    setFormData({
+      namaPx: "",
+      addrPx: "",
+      kelurahanPx: "",
+      teleponPx: "",
+      tlahirPx: "",
+      jkPx: "",
+      noKtp: "",
+      domisiliPx: "",
+      noJkn: "",
+    });
+    setAutoRm("");
+  } catch (err: any) {
+    console.error("error saving px:", err);
+    MySwal.fire({ 
+      title: "Gagal", 
+      text: err?.message || "Terjadi kesalahan saat menyimpan pasien", 
+      icon: "error" 
+    });
+  }
+};
+
 
   return (
     <div className="new-px-container">
@@ -352,7 +389,7 @@ const NewPx: React.FC = () => {
               <div className="form-card-header">
                 <h3>👤 Informasi Personal</h3>
               </div>
-              
+
               <div className="form-grid">
                 <div className="form-group">
                   <label htmlFor="edit-rm" className="form-label">
@@ -370,11 +407,11 @@ const NewPx: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="edit-nama-pasien" className="form-label required">
+                  <label htmlFor="edit-namaPx" className="form-label required">
                     Nama Pasien
                   </label>
-                  <input  
-                    id="edit-nama-pasien"
+                  <input
+                    id="edit-namaPx"
                     type="text"
                     className="form-input"
                     value={editFormData.nama}
@@ -415,7 +452,7 @@ const NewPx: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="edit-tgl-lahir" className="form-label">
+                  <label htmlFor="edit-tlahirPx" className="form-label">
                     Tanggal Lahir
                   </label>
                   <input
@@ -462,7 +499,6 @@ const NewPx: React.FC = () => {
         </div>
       ) : (
         <>
-          {/* Tabs Navigation */}
           <nav className="tabs">
             <button
               className={activeTab === "personal" ? "active" : ""}
@@ -491,102 +527,171 @@ const NewPx: React.FC = () => {
           </nav>
 
           {activeTab === "personal" && (
-            <div className="tab-content">
+            <form className="tab-content" onSubmit={handleSubmitNewPx}>
               <div className="form-section-header">
                 <div>
                   <h2 className="section-subtitle">Pendaftaran Pasien Baru</h2>
                 </div>
                 <div className="rm-generator">
-        <label htmlFor="auto-rm">No. Rekam Medis</label>
-        
-        <input
-          id="auto-rm"
-          type="text"
-          className="rm-field"
-          value={autoRm}
-          placeholder="00.00.00"
-          title="Nomor rekam medis"
-          readOnly
-        />
-        
-        <button 
-          className="btn btn-primary btn-auto" 
-          type="button"
-          onClick={handleAutoRmClick}
-          disabled={loading}
-        >
-          {loading ? 'Loading...' : 'Auto'}
-        </button>
-      </div>
-    </div>
+                  <label htmlFor="auto-rm">No. Rekam Medis</label>
+                  <input
+                    id="auto-rm"
+                    type="text"
+                    className="rm-field"
+                    value={autoRm}
+                    placeholder="00.00.00"
+                    title="Nomor rekam medis"
+                    readOnly
+                  />
+                  <button
+                    className="btn btn-primary btn-auto"
+                    type="button"
+                    onClick={handleAutoRmClick}
+                    disabled={loading}
+                  >
+                    {loading ? "Loading..." : "Auto"}
+                  </button>
+                </div>
+              </div>
 
               <div className="form-grid">
                 <div className="form-group">
-                  <label htmlFor="nama-pasien" className="form-label">
+                  <label htmlFor="namaPx" className="form-label">
                     Nama Pasien
                   </label>
                   <input
-                    id="nama-pasien"
+                    id="namaPx"
                     type="text"
                     className="form-input"
                     placeholder="Contoh: Siti Aminah"
                     title="Nama pasien"
+                    value={formData.namaPx}
+                    onChange={handleChange}
                   />
                 </div>
 
                 <div className="form-group full-width">
-                  <label htmlFor="px" className="form-label">
+                  <label htmlFor="addrPx" className="form-label">
                     Alamat
                   </label>
                   <input
-                    id="px"
+                    id="addrPx"
                     type="text"
                     className="form-input"
                     placeholder="Masukkan alamat lengkap"
                     title="Alamat pasien"
+                    value={formData.addrPx}
+                    onChange={handleChange}
                   />
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="kelurahan" className="form-label">
-                    Kelurahan / Desa
+                  <label htmlFor="kelurahanPx" className="form-label">
+                     Kelurahan
                   </label>
                   <input
-                    id="kelurahan"
+                    id="kelurahanPx"
                     type="text"
                     className="form-input"
                     placeholder="Contoh: Sidoharjo"
                     title="Kelurahan pasien"
+                    value={formData.kelurahanPx}
+                    onChange={handleChange}
                   />
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="tgl-lahir" className="form-label">
+                  <label htmlFor="teleponPx" className="form-label">
+                    Telepon Pasien
+                  </label>
+                  <input
+                    id="teleponPx"
+                    type="text"
+                    className="form-input"
+                    placeholder="Contoh: 081252440082"
+                    title="No. HP"
+                    value={formData.teleponPx}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="tlahirPx" className="form-label">
                     Tanggal Lahir
                   </label>
                   <input
-                    id="tgl-lahir"
+                    id="tlahirPx"
                     type="date"
                     className="form-input"
                     title="Tanggal lahir pasien"
+                    value={formData.tlahirPx}
+                    onChange={handleChange}
                   />
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="jenis-kelamin" className="form-label">
+                  <label htmlFor="jkPx" className="form-label">
                     Jenis Kelamin
                   </label>
                   <select
-                    id="jenis-kelamin"
+                    id="jkPx"
                     className="form-input"
                     title="Jenis kelamin pasien"
+                    value={formData.jkPx}
+                    onChange={handleChange}
                   >
                     <option value="">Pilih Jenis Kelamin</option>
                     <option value="P">👩 Perempuan</option>
                     <option value="L">👨 Laki-laki</option>
                   </select>
                 </div>
+
+                <div className="form-group">
+                  <label htmlFor="noKtp" className="form-label">
+                    No. KTP
+                  </label>
+                  <input
+                    id="noKtp"
+                    type="text"
+                    className="form-input"
+                    placeholder="Contoh: 3275023405670001"
+                    title="No. Ktp"
+                    value={formData.noKtp}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="domisiliPx" className="form-label">
+                    Domisili Pasien
+                  </label>
+                  <input
+                    id="domisiliPx"
+                    type="text"
+                    className="form-input"
+                    placeholder="Contoh: Jl Mawar No. 23"
+                    title="Domisili"
+                    value={formData.domisiliPx}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="noJkn" className="form-label">
+                    No. Jkn
+                  </label>
+                  <input
+                    id="noJkn"
+                    type="text"
+                    className="form-input"
+                    placeholder="Contoh: 0001234567890"
+                    title="No. Jkn"
+                    value={formData.noJkn}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
+
               <div className="form-actions">
                 <button type="button" className="btn btn-secondary">
                   Batal
@@ -595,48 +700,47 @@ const NewPx: React.FC = () => {
                   Simpan Data Pasien
                 </button>
               </div>
-            </div>
+            </form>
           )}
-
           {activeTab === "details" && (
             <div className="tab-content details-tab">
               <div className="section-header">
                 <h3>Detail Pekerjaan & Keluarga</h3>
                 <p className="section-subtitle">Informasi tambahan mengenai pekerjaan pasien</p>
               </div>
-              
+
               <div className="form-card">
                 <fieldset className="details-section">
                   <legend>Jenis Pekerjaan</legend>
                   <div className="checkbox-group">
                     <label className="checkbox-label">
-                      <input type="checkbox" title="Pegawai Negeri" /> 
+                      <input type="checkbox" title="Pegawai Negeri" />
                       <span className="checkmark"></span>
-                       Pegawai Negeri
+                      Pegawai Negeri
                     </label>
                     <label className="checkbox-label">
-                      <input type="checkbox" title="Wiraswasta" /> 
+                      <input type="checkbox" title="Wiraswasta" />
                       <span className="checkmark"></span>
                       Wiraswasta
                     </label>
                     <label className="checkbox-label">
-                      <input type="checkbox" title="Swasta" /> 
+                      <input type="checkbox" title="Swasta" />
                       <span className="checkmark"></span>
                       Swasta
                     </label>
                     <label className="checkbox-label">
-                      <input type="checkbox" title="Petani" /> 
+                      <input type="checkbox" title="Petani" />
                       <span className="checkmark"></span>
                       Petani
                     </label>
                     <label className="checkbox-label">
-                      <input type="checkbox" title="Lain-lain" /> 
+                      <input type="checkbox" title="Lain-lain" />
                       <span className="checkmark"></span>
                       Lain-Lain
                     </label>
                   </div>
                 </fieldset>
-                
+
                 <div className="form-grid">
                   <div className="form-group">
                     <label htmlFor="jabatan" className="form-label">
@@ -667,79 +771,6 @@ const NewPx: React.FC = () => {
             </div>
           )}
 
-          {/* ================= ALERGI OBAT TAB ================= */}
-          {activeTab === "alergi-obat" && (
-            <div className="tab-content alergi-obat-tab">
-              <div className="section-header">
-                <h3>💊 Daftar Alergi Obat</h3>
-                <p className="section-subtitle">Catat semua jenis obat yang menyebabkan alergi pada pasien</p>
-              </div>
-              
-              <div className="alergi-table-container">
-                <table className="alergi-table">
-                  <thead>
-                    <tr>
-                      <th>💊 Jenis Obat</th>
-                      <th>📝 Catatan</th>
-                      <th>🗑️ Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {alergiObatList.map((item, index) => (
-                      <tr key={index} className="alergi-row">
-                        <td>
-                          <select
-                            value={item.alergi}
-                            className="alergi-select"
-                            title="Pilih obat alergi"
-                            onChange={(e) =>
-                              handleChange(index, "alergi", e.target.value)
-                            }
-                          >
-                            <option value="">Pilih Obat</option>
-                            {alergiOptions.map((option, i) => (
-                              <option key={i} value={option}>
-                                {option}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td>
-                          <input
-                            type="text"
-                            className="alergi-note"
-                            placeholder="Catatan tambahan (reaksi, tingkat keparahan, dll)"
-                            title="Catatan alergi"
-                            value={item.note}
-                            onChange={(e) =>
-                              handleChange(index, "note", e.target.value)
-                            }
-                          />
-                        </td>
-                        <td>
-                          {alergiObatList.length > 1 && (
-                            <button 
-                              className="btn-remove"
-                              onClick={() => handleRemoveRow(index)}
-                              title="Hapus baris"
-                            >
-                              🗑️
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              
-              <div className="alergi-actions">
-                <button className="btn btn-primary add-row" onClick={handleAddRow}>
-                  Tambah Alergi Baru
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* ================= EDIT DATA PASIEN TAB ================= */}
           {activeTab === "edit-data-pasien" && (
@@ -751,7 +782,7 @@ const NewPx: React.FC = () => {
                     Masukkan nama pasien untuk mencari dan mengedit data yang sudah terdaftar
                   </p>
                 </div>
-                
+
                 <div className="search-card">
                   <div className="search-input-group">
                     <div className="form-group search-input">
@@ -792,7 +823,7 @@ const NewPx: React.FC = () => {
                       )}
                     </button>
                   </div>
-                  
+
                   <div className="search-tips">
                     <h4> Tips Pencarian:</h4>
                     <ul>
@@ -811,7 +842,7 @@ const NewPx: React.FC = () => {
                         <strong>{selectedPatient.nama}</strong>
                         <span className="patient-id">No. RM: {selectedPatient.id}</span>
                       </div>
-                      <button 
+                      <button
                         className="btn btn-outline btn-sm"
                         onClick={() => {
                           setEditFormData({ ...selectedPatient });
