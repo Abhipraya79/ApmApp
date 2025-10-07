@@ -1,32 +1,31 @@
 import apiClient from "./apiClient";
 
 export interface NewPxPayload {
-  id?: string;            
+  regNum: string;
   namaPx: string;
   addrPx: string;
-  kelurahanPx?: string;
-  teleponPx?: string;
-  tlahirPx?: string;       
-  jkPx?: string;         
-  noKtp?: string;
-  domisiliPx?: string;
-  noJkn?: string;
+  kelurahanPx: string;
+  teleponPx: string;
+  tlahirPx: string;
+  jkPx: string;
+  noKtp: string;
+  domisiliPx: string;
+  noJkn: string;
 }
 
-export const newPx = async (payload: NewPxPayload) => {
-  const body: any = {
-    regNum: payload.id ?? null,                   
-    nama: payload.namaPx?.trim(),
-    addr: payload.addrPx?.trim() ?? null,
-    kelurahan: payload.kelurahanPx?.trim() ?? null,
-    telepon: payload.teleponPx?.trim() ?? null,
-    tanggalLahir: payload.tlahirPx ? payload.tlahirPx : null,
-    jenisKelamin: payload.jkPx ?? null,
-    noKtp: payload.noKtp?.trim() ?? null,
-    domisili: payload.domisiliPx?.trim() ?? null,
-    nokaBpjs: payload.noJkn?.trim() ?? null
-  };
+/**
+ * Service untuk mengirim data profil pasien baru ke server.
+ * @param patientData Objek data pasien yang akan disimpan.
+ * @returns Promise yang berisi response dari server.
+ */
 
-  const res = await apiClient.post("/api/profilepx", body);
-  return res.data;
+export const NewPx = async (patientData: NewPxPayload) => {
+  try {
+    const response = await apiClient.post('/api/px', patientData);
+    console.log('API Response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error saat memanggil API NewPx:", error);
+    throw error;
+  }
 };

@@ -8,7 +8,7 @@ import apiClient from "./apiClient";
  */
 export const cariPasienByNama = async (nama: string) => {
   try {
-    const url = `/pxref/name?nama=${encodeURIComponent(nama)}&pg=0&sz=10`;
+    const url = `/api/px?nama=${encodeURIComponent(nama)}&pg=0&sz=10`;
     const response = await apiClient.get(url);
     return response.data;
   } catch (err: any) {

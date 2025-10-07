@@ -212,7 +212,15 @@
   color: #374151;
   font-size: 14px;
 }
-
+/* Tambahkan ini di file CSS Anda */
+.rm-generator input {
+  border: 1px solid #D1D5DB; /* Memberi garis tepi */
+  padding: 8px 12px;           /* Memberi ruang di dalam input */
+  border-radius: 6px;          /* Membuat sudut sedikit melengkung */
+  font-size: 14px;             /* Menyamakan ukuran font */
+  background-color: #F9FAFB;   /* Memberi warna latar sedikit abu-abu karena read-only */
+  color: #6B7280;              /* Warna teks */
+}
 .rm-field {
   padding: 12px;
   border-radius: 10px;
