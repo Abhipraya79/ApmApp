@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../api/authService";
 import Swal from 'sweetalert2';
-import "./Login.css"; // We'll create this for styling the form
+import "./Login.css";
 import { Link } from "react-router-dom";
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -16,8 +16,6 @@ const Login = () => {
 
     try {
       const data = await login(username, password);
-      
-      // Check if the API response indicates success
       if (data.metadata.code === 200 && data.response.token) {
         Swal.fire({
           icon: 'success',
@@ -25,10 +23,8 @@ const Login = () => {
           timer: 1500,
           showConfirmButton: false,
         });
-        // Redirect to the main application page
         navigate("/"); 
       } else {
-        // Handle login failure from the API
         throw new Error(data.metadata.message || "Username atau Password salah");
       }
     } catch (error: any) {

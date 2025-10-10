@@ -6,13 +6,11 @@ import AppointmentPage from "./pages/AppointmentPage";
 import NewPxPage from "./pages/NewPx";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import DashboardPage from "./pages/DashboardPage";
 import "./App.css";
 
-// Layout untuk halaman private
 const ProtectedLayout = () => {
   const authenticated = isAuthenticated();
-  console.log("ProtectedLayout - isAuthenticated:", authenticated); // Debug log
-  
   if (!authenticated) {
     return <Navigate to="/login" replace />;
   }
@@ -29,40 +27,29 @@ const ProtectedLayout = () => {
   );
 };
 
-// Layout untuk halaman publik
 const PublicLayout = () => {
   const authenticated = isAuthenticated();
-  console.log("PublicLayout - isAuthenticated:", authenticated); // Debug log
-  
   if (authenticated) {
-    return <Navigate to="/appointment" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   return <Outlet />;
 };
 
 const App: React.FC = () => {
-  // Debug: cek localStorage saat app dimuat
-  console.log("App loaded - localStorage token:", localStorage.getItem("api_token"));
-  
   return (
     <Routes>
       <Route element={<PublicLayout />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
       </Route>
-
-      {/* Protected routes */}
       <Route element={<ProtectedLayout />}>
-        <Route path="/" element={<AppointmentPage />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/appointment" element={<AppointmentPage />} />
         <Route path="/newpx" element={<NewPxPage />} />
+        <Route path="/newpx/edit/:regNum" element={<NewPxPage />} />
       </Route>
-
-      {/* Catch-all untuk route yang tidak dikenal */}
-      <Route
-        path="*"
-        element={<Navigate to="/login" replace />}
-      />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 };

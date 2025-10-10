@@ -1,10 +1,9 @@
 import apiClient from "./apiClient";
 
 /**
- * Searches for a patient by name.
- * The authentication token is automatically added by the apiClient interceptor.
- * @param nama The name of the patient to search for.
- * @returns The API response data.
+ * Mencari daftar pasien berdasarkan nama.
+ * @param nama Nama pasien yang dicari.
+ * @returns Data hasil pencarian dari API.
  */
 export const cariPasienByNama = async (nama: string) => {
   try {
@@ -12,39 +11,36 @@ export const cariPasienByNama = async (nama: string) => {
     const response = await apiClient.get(url);
     return response.data;
   } catch (err: any) {
-    throw err.response?.data?.message || "Gagal fetch data pasien";
+    throw err.response?.data?.message || "Gagal mengambil data pasien";
   }
 };
 
 /**
- * Searches for a patient by medical record number.
- * The authentication token is automatically added by the apiClient interceptor.
- * @param rekamMedis The medical record number to search for.
- * @returns The API response data.
+ * Mengambil data detail satu pasien berdasarkan ID / Nomor Rekam Medis.
+ * @param id Nomor Rekam Medis pasien.
+ * @returns Data detail satu pasien dari API.
  */
-export const getPasienByRM = async (rekamMedis: string) => {
+export const getPasienById = async (id: string) => {
   try {
-    const cleanRM = rekamMedis.replace(/\./g, '');
-    const url = `/pxref/rekmed?id=${cleanRM}`;
+    const url = `/api/px/${id}`; 
     const response = await apiClient.get(url);
     return response.data;
   } catch (err: any) {
-    throw err.response?.data?.message || "Gagal fetch data pasien";
+    throw err.response?.data?.message || "Gagal mengambil detail data pasien";
   }
 };
 
 /**
- * Searches for a patient by medical record number with rekmed parameter.
- * Alternative method for searching by rekmed using different endpoint parameter.
- * @param rekmed The medical record number in format xx.xx.xx or clean format
- * @returns The API response data.
+ * Mencari pasien berdasarkan nomor rekam medis (format: xx.xx.xx).
+ * @param rekmed Nomor rekam medis pasien.
+ * @returns Data pasien dari API.
  */
 export const cariPasienByRekmed = async (rekmed: string) => {
   try {
-    const url = `/pxref/rekmed?rekmed=${encodeURIComponent(rekmed)}`;
+    const url = `/api/px/rekmed/${encodeURIComponent(rekmed)}`;
     const response = await apiClient.get(url);
     return response.data;
   } catch (err: any) {
-    throw err.response?.data?.message || "Gagal fetch data pasien by rekmed";
+    throw err.response?.data?.message || "Gagal mengambil data pasien by rekmed";
   }
 };

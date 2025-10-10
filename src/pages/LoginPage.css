@@ -3,7 +3,12 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f0f2f5; /* A soft grey background */
+  
+  background-image: linear-gradient(rgba(0, 0, 0, 0.61), rgba(0, 0, 0, 0.85)), url('public/assets/KLINIK.png');
+  
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .login-card {
@@ -28,12 +33,12 @@
 
 .login-header h2 {
   font-size: 24px;
-  color: #1e3a8a;
+  color: #1e3a8a; /* Biru tua */
   margin: 0 0 5px 0;
 }
 
 .login-header p {
   font-size: 16px;
-  color: #6b7280;
+  color: #6b7280; /* Abu-abu */
   margin: 0;
 }

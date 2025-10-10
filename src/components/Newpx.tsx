@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate, UNSAFE_NavigationContext } from "react-router-dom";
+import type { To, NavigateOptions } from "react-router-dom";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import "./NewPx.css";
@@ -7,6 +9,7 @@ import { getAutoRm } from "../api/autoRmService";
 import { NewPx } from "../api/NewPxService";
 import type { NewPxPayload } from "../api/NewPxService";
 import { updatePx } from "../api/UpdatePxService";
+import { deletePx } from "../api/DeletePxService";
 
 const MySwal = withReactContent(Swal);
 
@@ -21,6 +24,85 @@ interface PatientSearchResult {
   noKtp?: string;
   domisili?: string;
   noJkn?: string;
+}
+
+// Custom hook untuk block navigation
+function useNavigationBlocker(when: boolean, message: string) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const navigationContext = React.useContext(UNSAFE_NavigationContext);
+
+  useEffect(() => {
+    if (!when) return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = message;
+      return message;
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [when, message]);
+
+  useEffect(() => {
+    if (!when || !navigationContext.navigator) return;
+
+    const { push, replace } = navigationContext.navigator;
+    let isConfirmed = false;
+
+    navigationContext.navigator.push = async (to: To, state?: any, opts?: NavigateOptions) => {
+  if (isConfirmed) {
+    return push.call(navigationContext.navigator, to, state, opts);
+  }
+
+  const result = await MySwal.fire({
+    title: "Anda Sedang Dalam Mode Pengeditan",
+    html: "Apakah Anda yakin ingin membatalkan pengeditan?<br/><small>Data yang belum disimpan akan hilang.</small>",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#dc3545",
+    cancelButtonColor: "#00fe00ff",
+    confirmButtonText: "Ya, Batalkan",
+    cancelButtonText: "Tetap Di Sini"
+  });
+
+  if (result.isConfirmed) {
+    isConfirmed = true;
+    return push.call(navigationContext.navigator, to, state, opts);
+  }
+};
+
+navigationContext.navigator.replace = async (to: To, state?: any, opts?: NavigateOptions) => {
+  if (isConfirmed) {
+    return replace.call(navigationContext.navigator, to, state, opts);
+  }
+
+  const result = await MySwal.fire({
+    title: "Anda Sedang Dalam Mode Pengeditan",
+    html: "Apakah Anda yakin ingin membatalkan pengeditan?<br/><small>Data yang belum disimpan akan hilang.</small>",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#dc3545",
+    cancelButtonColor: "#6c757d",
+    confirmButtonText: "Ya, Batalkan",
+    cancelButtonText: "Tetap Di Sini"
+  });
+
+  if (result.isConfirmed) {
+    isConfirmed = true;
+    return replace.call(navigationContext.navigator, to, state, opts);
+  }
+};
+
+    return () => {
+      navigationContext.navigator.push = push;
+      navigationContext.navigator.replace = replace;
+    };
+  }, [when, message, navigationContext, navigate, location]);
 }
 
 const NewPxComponent: React.FC = () => {
@@ -38,6 +120,42 @@ const NewPxComponent: React.FC = () => {
 
   const [editPayload, setEditPayload] = useState<NewPxPayload | null>(null);
 
+  useNavigationBlocker(
+    showEditForm,
+    "Anda sedang dalam mode pengeditan. Data yang belum disimpan akan hilang."
+  );
+  useEffect(() => {
+    const savedState = sessionStorage.getItem('newPxState');
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        setActiveTab(parsed.activeTab || "personal");
+        setPatientName(parsed.patientName || "");
+        setShowEditForm(parsed.showEditForm || false);
+        setAutoRm(parsed.autoRm || "");
+        setFormData(parsed.formData || {
+          regNum: "", namaPx: "", addrPx: "", kelurahanPx: "", teleponPx: "",
+          tlahirPx: "", jkPx: "", noKtp: "", domisiliPx: "", noJkn: "",
+        });
+        setEditPayload(parsed.editPayload || null);
+      } catch (e) {
+        console.error("Error parsing saved state:", e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const stateToSave = {
+      activeTab,
+      patientName,
+      showEditForm,
+      autoRm,
+      formData,
+      editPayload,
+    };
+    sessionStorage.setItem('newPxState', JSON.stringify(stateToSave));
+  }, [activeTab, patientName, showEditForm, autoRm, formData, editPayload]);
+
   const handleAutoRmClick = async () => {
     setLoading(true);
     try {
@@ -49,6 +167,45 @@ const NewPxComponent: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeletePatient = async () => {
+    if (!editPayload) return;
+    MySwal.fire({
+      title: "Hapus Data Pasien?",
+      html: `Apakah Anda yakin ingin menghapus <strong>${editPayload.namaPx}</strong>?<br/>Data yang dihapus tidak dapat dikembalikan.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc3545",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Ya, Hapus Data!",
+      cancelButtonText: "Batal"
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          MySwal.fire({
+            title: "Menghapus...",
+            text: `Sedang menghapus data pasien ${editPayload.namaPx}.`,
+            allowOutsideClick: false,
+            didOpen: () => MySwal.showLoading()
+          });
+          await deletePx(editPayload.regNum);
+          MySwal.fire({
+            title: "Berhasil Dihapus!",
+            text: `Data pasien ${editPayload.namaPx} telah dihapus.`,
+            icon: "success"
+          });
+          setShowEditForm(false);
+          setEditPayload(null);
+        } catch (error: any) {
+          MySwal.fire({
+            title: "Gagal Menghapus",
+            text: error?.response?.data?.message || error?.message || "Terjadi kesalahan saat menghapus data pasien.",
+            icon: "error"
+          });
+        }
+      }
+    });
   };
 
   const formatDateForInput = (dateValue: any): string => {
@@ -157,7 +314,7 @@ const NewPxComponent: React.FC = () => {
   const handleSaveEditData = async () => {
     if (!editPayload) return;
     if (!editPayload.namaPx.trim() || !editPayload.addrPx.trim()) {
-      MySwal.fire({ title: "⚠️ Data Tidak Lengkap", text: "Nama dan alamat pasien harus diisi.", icon: "warning" });
+      MySwal.fire({ title: "Data Tidak Lengkap", text: "Nama dan alamat pasien harus diisi.", icon: "warning" });
       return;
     }
     
@@ -168,14 +325,27 @@ const NewPxComponent: React.FC = () => {
       setShowEditForm(false);
       setEditPayload(null);
     } catch (error) {
-      MySwal.fire({ title: "❌ Gagal Memperbarui", text: "Terjadi kesalahan saat menyimpan perubahan.", icon: "error" });
+      MySwal.fire({ title: "Gagal Memperbarui", text: "Terjadi kesalahan saat menyimpan perubahan.", icon: "error" });
     }
   };
   
   const handleBackToSearch = () => {
-    setShowEditForm(false);
-    setEditPayload(null);
-    setPatientName("");
+    MySwal.fire({
+      title: "Batalkan Pengeditan?",
+      text: "Data yang belum disimpan akan hilang.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc3545",
+      cancelButtonColor: "#008cffff",
+      confirmButtonText: "Ya, Batalkan",
+      cancelButtonText: "Tidak"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setShowEditForm(false);
+        setEditPayload(null);
+        setPatientName("");
+      }
+    });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -199,6 +369,19 @@ const NewPxComponent: React.FC = () => {
     } catch (err: any) {
       MySwal.fire({ title: "Gagal Menyimpan", text: err?.response?.data?.message || err?.message || "Terjadi kesalahan.", icon: "error" });
     }
+  };
+
+  const clearSavedState = () => {
+    sessionStorage.removeItem('newPxState');
+    setActiveTab("personal");
+    setPatientName("");
+    setShowEditForm(false);
+    setAutoRm("");
+    setFormData({
+      regNum: "", namaPx: "", addrPx: "", kelurahanPx: "", teleponPx: "",
+      tlahirPx: "", jkPx: "", noKtp: "", domisiliPx: "", noJkn: "",
+    });
+    setEditPayload(null);
   };
 
   return (
@@ -258,6 +441,7 @@ const NewPxComponent: React.FC = () => {
               </div>
             </div>
             <div className="form-actions">
+              <button type="button" className="btn btn-delete" onClick={handleDeletePatient}>Hapus Data Pasien</button>
               <button type="button" className="btn btn-outline" onClick={handleBackToSearch}>Kembali</button>
               <button type="button" className="btn btn-primary" onClick={handleSaveEditData}>Simpan Perubahan</button>
             </div>
@@ -296,7 +480,7 @@ const NewPxComponent: React.FC = () => {
                 <div className="form-group"><label htmlFor="noJkn">No. JKN</label><input id="noJkn" type="text" value={formData.noJkn} onChange={handleChange} /></div>
               </div>
               <div className="form-actions">
-                <button type="button" className="btn btn-secondary">Batal</button>
+                <button type="button" className="btn btn-secondary" onClick={clearSavedState}>Batal</button>
                 <button type="submit" className="btn btn-primary">Simpan</button>
               </div>
             </form>

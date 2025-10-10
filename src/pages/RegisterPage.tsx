@@ -1,6 +1,6 @@
-// src/pages/RegisterPage.tsx
+
 import React from "react";
-import Register from "../components/Register"; // kalau kamu sudah bikin komponen Register.tsx
+import Register from "../components/Register";
 const RegisterPage: React.FC = () => {
   return <Register />;
 };

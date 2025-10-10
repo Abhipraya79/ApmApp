@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
-import { cariPasienByNama, getPasienByRM, cariPasienByRekmed } from "../api/servicePx";
+import { cariPasienByNama, getPasienById, cariPasienByRekmed } from "../api/servicePx";
 import { getDoctor } from "../api/serviceDoctor";
 import type { Nakes } from "../api/serviceDoctor";
 import { getServerTime } from "../api/serviceTime";
@@ -54,11 +54,8 @@ const AppointmentForm = () => {
     spesialis: "",
   });
 
-  // State untuk rekam medis format xx.xx.xx
   const [rekmedParts, setRekmedParts] = useState<string[]>(['', '', '']);
-  const [rekamMedisQuery, setRekamMedisQuery] = useState<string>("");
 
-  // Refs untuk auto-focus input rekmed
   const input1Ref = useRef<HTMLInputElement>(null);
   const input2Ref = useRef<HTMLInputElement>(null);
   const input3Ref = useRef<HTMLInputElement>(null);
@@ -198,23 +195,19 @@ const AppointmentForm = () => {
     });
 
     try {
-      // Coba menggunakan cariPasienByRekmed terlebih dahulu
       const res = await cariPasienByRekmed(rekmedNumber);
 
       if (res?.response) {
-        // Jika response berupa single object
         if (typeof res.response === 'object' && !Array.isArray(res.response) && res.response.id) {
           const patient = mapPasienToPatient(res.response);
           handlePatientSelection(patient);
-          setRekmedParts(['', '', '']); // Reset form
+          setRekmedParts(['', '', '']);
         }
-        // Jika response berupa array
         else if (Array.isArray(res.response) && res.response.length > 0) {
           const patient = mapPasienToPatient(res.response[0]);
           handlePatientSelection(patient);
-          setRekmedParts(['', '', '']); // Reset form
+          setRekmedParts(['', '', '']);
         } else {
-          // Fallback ke getPasienByRM jika tidak ada data
           await fallbackSearchByRM(rekmedNumber);
         }
       } else {
@@ -222,15 +215,12 @@ const AppointmentForm = () => {
       }
     } catch (err: any) {
       console.error("Error cariPasienByRekmed:", err);
-      // Fallback ke getPasienByRM jika error
       await fallbackSearchByRM(rekmedNumber);
     }
   };
-
-  // Fallback search menggunakan getPasienByRM
   const fallbackSearchByRM = async (rekmedNumber: string) => {
     try {
-      const res = await getPasienByRM(rekmedNumber);
+      const res = await getPasienById(rekmedNumber);
       const pasien = res?.data;
 
       if (!pasien) {
@@ -688,55 +678,10 @@ const AppointmentForm = () => {
         : (pasien.sex === "M" ? "L" : pasien.sex === "F" ? "P" : "L"),
   });
 
-  const handleSearchByRM = async () => {
-    const rm = rekamMedisQuery.trim();
-    if (!rm) {
-      MySwal.fire({
-        title: "Input Kosong",
-        text: "Masukkan No. RM terlebih dahulu.",
-        icon: "warning",
-        confirmButtonColor: "#2563eb"
-      });
-      return;
-    }
-
-    MySwal.fire({
-      title: "Mencari...",
-      text: `Mencari RM: ${rm}`,
-      allowOutsideClick: false,
-      didOpen: () => MySwal.showLoading()
-    });
-
-    try {
-      const res = await getPasienByRM(rm);
-      const pasien = res?.data;
-      if (!pasien) {
-        MySwal.fire({
-          title: "Tidak Ditemukan",
-          text: `Pasien dengan RM ${rm} tidak ditemukan.`,
-          icon: "info",
-          confirmButtonColor: "#2563eb"
-        });
-        return;
-      }
-      const patient = mapPasienToPatient(pasien);
-      handlePatientSelection(patient);
-      setRekamMedisQuery("");
-    } catch (err: any) {
-      console.error("Error getPasienByRM:", err);
-      MySwal.fire({
-        title: "Error",
-        text: (err?.toString?.() ?? "Gagal mengambil data"),
-        icon: "error",
-        confirmButtonColor: "#ef4444"
-      });
-    }
-  };
 
   const clearForm = () => {
     setPatientName("");
     setRekmedParts(['', '', '']);
-    setRekamMedisQuery("");
     setFormData({
       rekamMedis: "",
       register: "",
@@ -1107,7 +1052,7 @@ const AppointmentForm = () => {
         />
         <button
             type="button"
-            onClick={handleAutofillDateTime} // atau handleAutofillDateTimeQuick
+            onClick={handleAutofillDateTime}
             className="btn btn-autofill"
             title="Isi dengan tanggal dan jam server saat ini"
         >

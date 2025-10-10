@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { logout } from "../api/authService";
-import { Calendar, UserPlus, LogOut } from "lucide-react";
+import { Calendar, UserPlus, LogOut, LayoutDashboard } from "lucide-react";
 import "./Sidebar.css";
 
 const MySwal = withReactContent(Swal);
@@ -13,23 +13,28 @@ const Sidebar: React.FC = () => {
   const location = useLocation();
   const [activeMenu, setActiveMenu] = useState<string>("appointment");
 
-  // Update active menu berdasarkan path saat ini
   useEffect(() => {
-    if (location.pathname === "/" || location.pathname === "/appointment") {
+    if (location.pathname === "/" || location.pathname === "/dashboard") {
+      setActiveMenu("dashboard");
+    } else if (location.pathname === "/appointment") {
       setActiveMenu("appointment");
     } else if (location.pathname === "/newpx") {
       setActiveMenu("newpx");
     }
   }, [location.pathname]);
-
   const goToAppointment = () => {
     setActiveMenu("appointment");
-    navigate("/");
+    navigate("/appointment");
   };
 
   const goToNewPx = () => {
     setActiveMenu("newpx");
     navigate("/newpx");
+  };
+
+  const goToDashboard = () => {
+    setActiveMenu("dashboard");
+    navigate("/dashboard");
   };
 
   const handleLogout = () => {
@@ -65,15 +70,20 @@ const Sidebar: React.FC = () => {
       </div>
 
       <nav className="sidebar-menu">
-        <button 
-          className={`sidebar-btn ${activeMenu === "appointment" ? "active" : ""}`} 
+        <button
+          className={`sidebar-btn ${activeMenu === "dashboard" ? "active" : ""}`}
+          onClick={goToDashboard}
+        ><LayoutDashboard size={20} className="sidebar-icon" />
+          <span>Dashboard</span> </button>
+        <button
+          className={`sidebar-btn ${activeMenu === "appointment" ? "active" : ""}`}
           onClick={goToAppointment}
         >
           <Calendar size={20} className="sidebar-icon" />
           <span>Appointment</span>
         </button>
-        <button 
-          className={`sidebar-btn ${activeMenu === "newpx" ? "active" : ""}`} 
+        <button
+          className={`sidebar-btn ${activeMenu === "newpx" ? "active" : ""}`}
           onClick={goToNewPx}
         >
           <UserPlus size={20} className="sidebar-icon" />
