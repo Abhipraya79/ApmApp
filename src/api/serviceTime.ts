@@ -17,7 +17,6 @@ export interface ReCaller<T, M> {
     metadata: M;
 }
 
-// Interface untuk complete response
 export interface ServerTimeResponse extends ReCaller<WSTime, Metadata> {}
 
 export const getServerTime = async (): Promise<WSTime> => {

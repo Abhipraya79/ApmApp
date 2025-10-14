@@ -1,6 +1,5 @@
 import apiClient from './apiClient';
 
-
 /**
 @returns {Promise<object>}
 */

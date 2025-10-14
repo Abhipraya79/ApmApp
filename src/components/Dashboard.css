@@ -1,87 +1,435 @@
+/* === GLOBAL STYLING === */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* === DASHBOARD CONTAINER === */
 .dashboard-container {
-  padding: 24px;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* === HEADER === */
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 40px;
+  animation: fadeInDown 0.6s ease;
 }
 
 .dashboard-title {
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: #1e3a8a;
-  margin-bottom: 6px;
+  font-size: 32px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .dashboard-subtitle {
-  color: #555;
-  margin-bottom: 24px;
+  font-size: 16px;
+  color: #64748b;
+  font-weight: 500;
 }
 
+/* === LOADING STATE === */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 20px;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === SUMMARY SECTION === */
 .dashboard-summary {
   display: flex;
-  gap: 20px;
+  justify-content: center;
   flex-wrap: wrap;
-  margin-bottom: 32px;
+  gap: 24px;
+  margin-bottom: 50px;
+  animation: fadeInUp 0.6s ease 0.2s both;
 }
 
 .summary-card {
-  background-color: #f9fafb;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-  width: 240px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 28px 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
   text-align: center;
+  transition: all 0.3s ease;
+  width: 280px;
+  position: relative;
+  overflow: hidden;
+}
+
+.summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+}
+
+.summary-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.15);
+}
+
+.summary-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border-radius: 16px;
+  margin-bottom: 16px;
+  color: #2563eb;
+  transition: transform 0.3s ease;
+}
+
+.summary-icon.success {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  color: #16a34a;
+}
+
+.summary-card:hover .summary-icon {
+  transform: scale(1.1) rotate(5deg);
 }
 
 .summary-card h3 {
-  color: #374151;
-  font-size: 1rem;
-  margin-bottom: 8px;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .summary-number {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #2563eb;
+  font-size: 42px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+  margin-bottom: 8px;
 }
 
+.summary-label {
+  font-size: 13px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* === SECTION === */
 .dashboard-section {
-  margin-top: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeInUp 0.6s ease 0.4s both;
 }
 
 .section-title {
-  font-size: 1.3rem;
-  color: #1e3a8a;
-  margin-bottom: 16px;
-  font-weight: 600;
-}
-
-.doctor-list {
+  font-size: 24px;
+  color: #0f172a;
+  font-weight: 700;
+  margin-bottom: 30px;
+  text-align: center;
   display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
 }
 
+.title-icon {
+  font-size: 28px;
+}
+
+/* === DOCTOR LIST === */
+.doctor-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+  padding: 0 20px;
+}
+
+/* === DOCTOR CARD === */
 .doctor-card {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 16px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  width: 220px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+  text-align: center;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.doctor-card h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 4px;
+.doctor-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.doctor-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.12);
+  border-color: #e0f2fe;
+}
+
+.doctor-card:hover::before {
+  transform: scaleX(1);
+}
+
+/* === DOCTOR PHOTO === */
+.doctor-photo-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 16px;
+}
+
+.doctor-photo {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #e0f2fe;
+  transition: all 0.3s ease;
+}
+
+.doctor-card:hover .doctor-photo {
+  border-color: #2563eb;
+  transform: scale(1.05);
+}
+
+/* === STATUS BADGE === */
+.status-badge {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-badge.status-active {
+  background: #22c55e;
+}
+
+.status-badge.status-ended {
+  background: #ef4444;
+}
+
+.status-badge.status-upcoming {
+  background: #f59e0b;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background: #ffffff;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.2);
+  }
+}
+
+/* === DOCTOR DETAILS === */
+.doctor-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.doctor-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
 }
 
 .doctor-specialization {
   color: #2563eb;
-  font-size: 0.9rem;
-  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #eff6ff;
+  padding: 4px 12px;
+  border-radius: 8px;
+  display: inline-block;
+  margin: 0 auto;
 }
 
 .doctor-schedule {
-  color: #6b7280;
-  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #64748b;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+.doctor-schedule svg {
+  color: #94a3b8;
+}
+
+/* === STATUS LABELS === */
+.doctor-status {
+  margin-top: 12px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.doctor-status.status-active {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  color: #15803d;
+}
+
+.doctor-status.status-ended {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #b91c1c;
+}
+
+.doctor-status.status-upcoming {
+  background: linear-gradient(135deg, #fef9c3 0%, #fef08a 100%);
+  color: #854d0e;
+}
+
+/* === EMPTY STATE === */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  color: #94a3b8;
+}
+
+.empty-state svg {
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 24px 16px;
+  }
+
+  .dashboard-title {
+    font-size: 26px;
+  }
+
+  .dashboard-subtitle {
+    font-size: 14px;
+  }
+
+  .dashboard-summary {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .summary-card {
+    width: 100%;
+    max-width: 340px;
+  }
+
+  .doctor-list {
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+
+  .doctor-card {
+    max-width: 100%;
+  }
+
+  .section-title {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-title {
+    font-size: 22px;
+  }
+
+  .summary-number {
+    font-size: 36px;
+  }
+
+  .doctor-photo {
+    width: 80px;
+    height: 80px;
+  }
 }
